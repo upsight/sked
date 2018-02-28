@@ -8,29 +8,6 @@ import (
 	"time"
 )
 
-func TestSked_isExpired(t *testing.T) {
-	now := time.Now().UTC()
-	s := &Sked{}
-	tests := []struct {
-		name        string
-		inTime      time.Time
-		inKeyString string
-		want        bool
-	}{
-		{"00", now, "", true},
-		{"01", now, NewKeyString(now.Add(-1*time.Second), 1, "", 1), true},
-		{"02", now, NewKeyString(now.Add(1*time.Second), 1, "", 1), false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Log(tt.inTime)
-			if got := s.isExpired(tt.inTime, tt.inKeyString); got != tt.want {
-				t.Errorf("Sked.isExpired() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 func TestSked_poll(t *testing.T) {
 	l := NewLogLogger()
 	tmpfile, _ := ioutil.TempFile("", "sked")

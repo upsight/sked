@@ -25,6 +25,30 @@ func TestKey_String(t *testing.T) {
 	}
 }
 
+func TestKey_IsExpired(t *testing.T) {
+	now := time.Now().UTC()
+	key := &Key{}
+	tests := []struct {
+		name           string
+		inTime         time.Time
+		inExpiresAfter int
+		want           bool
+	}{
+		{"00", now, 1, false},
+		{"01", now.Add(-2 * time.Second), 1, true},
+		{"02", now.Add(1 * time.Second), 1, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			key.Time = tt.inTime
+			key.ExpiresAfter = tt.inExpiresAfter
+			if got := key.IsExpired(now); got != tt.want {
+				t.Errorf("Key.IsExpired() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestKey_Parse(t *testing.T) {
 	now := time.Now().UTC()
 	tests := []struct {
@@ -38,7 +62,7 @@ func TestKey_Parse(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := tt.want.Parse(tt.in)
+			got, err := ParseKey(tt.in)
 			if err != tt.wantErr {
 				t.Fatalf("got %v, want %v", err, tt.wantErr)
 			}

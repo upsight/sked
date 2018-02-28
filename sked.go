@@ -90,7 +90,7 @@ func New(o *Options, l Logger) (*Sked, error) {
 	s.events = make(chan []byte, o.EventChannelSize)
 	s.logger.Printf("config: %+v", o)
 
-	db, err := bolt.Open(o.DBPath, 0600, &bolt.Options{Timeout: time.Duration(o.OpenTimeoutMS) * time.Second})
+	db, err := bolt.Open(o.DBPath, 0600, &bolt.Options{Timeout: time.Duration(o.OpenTimeoutMS) * time.Millisecond})
 	if err != nil {
 		return nil, err
 	}
@@ -165,9 +165,9 @@ func (s *Sked) Get(id uint64) (*Result, error) {
 		for k, v := cur.First(); k != nil; k, v = cur.Next() {
 			if bytes.Contains(k, matchBytes) {
 				r := &Result{Event: v}
-				r.Key, _ = key.Parse(string(k))
+				r.Key, err = ParseKey(string(k))
 				result = r
-				return nil
+				return err
 			}
 		}
 		return nil
@@ -192,7 +192,10 @@ func (s *Sked) GetAll(tag string) ([]*Result, error) {
 		for k, v := cur.First(); k != nil; k, v = cur.Next() {
 			if bytes.Contains(k, matchBytes) {
 				r := &Result{Event: v}
-				r.Key, _ = key.Parse(string(k))
+				r.Key, err = ParseKey(string(k))
+				if err != nil {
+					return err
+				}
 				results = append(results, r)
 			}
 		}
